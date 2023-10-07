@@ -7,13 +7,14 @@ import (
 	"strings"
 
 	"github.com/mymhimself/logger"
+	"github.com/mymhimself/simple-csv-reader/internal/entities"
 	"github.com/mymhimself/simple-csv-reader/internal/models/businessdata"
 	"github.com/mymhimself/simple-csv-reader/pkg/config"
 )
 
 type iCSVReader struct {
 	object    map[string]string
-	publisher IPublisher
+	publisher businessdata.IPublisher
 
 	config struct {
 		delimiter string
@@ -86,11 +87,14 @@ func (s *iCSVReader) ReadLines(lineChan chan string) error {
 // ─────────────────────────────────────────────────────────────────────────────
 func (s *iCSVReader) ProcessLines(lineChan chan string) error {
 	for line := range lineChan {
-		err := s.publisher.processLine(line)
+		businessData, err := entities.NewFromCSVLine(line, s.config.delimiter)
+		if err != nil {
+			logger.Error(err)
+		}
+		err = s.publisher.StoreBusinessData(businessData)
 		if err != nil {
 			logger.Error(err)
 		}
 	}
-
 	return nil
 }
