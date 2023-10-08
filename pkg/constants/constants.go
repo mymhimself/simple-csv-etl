@@ -345,6 +345,9 @@ const (
 
 	Cache    = "cache"
 	CacheTTL = Cache + "." + TTL
+	// ─────────────────────────────────────────────────────────────────────
+
+	Publisher = "publisher"
 )
 
 // Analytic Required Keys to reset information saved.

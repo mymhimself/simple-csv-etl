@@ -6,7 +6,8 @@ import (
 )
 
 type iWriter struct {
-	mongodb mongodb.IMongoDB
+	mongodb  mongodb.IMongoDB
+	database string
 }
 
 func New(ops ...InitOption) (IWriter, error) {

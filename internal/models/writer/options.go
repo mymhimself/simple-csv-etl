@@ -10,3 +10,10 @@ func InitOptionMongoClient(v mongodb.IMongoDB) InitOption {
 		return nil
 	}
 }
+
+func InitOptionDatabaseName(v string) InitOption {
+	return func(s *iWriter) error {
+		s.database = v
+		return nil
+	}
+}

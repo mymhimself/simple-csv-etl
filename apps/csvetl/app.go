@@ -17,6 +17,7 @@ import (
 	"github.com/mymhimself/simple-csv-reader/internal/services/processor"
 	sReader "github.com/mymhimself/simple-csv-reader/internal/services/reader"
 	sWriter "github.com/mymhimself/simple-csv-reader/internal/services/writer"
+	"github.com/mymhimself/simple-csv-reader/internal/services/writer/publisher"
 	"github.com/mymhimself/simple-csv-reader/pkg/config"
 	"github.com/mymhimself/simple-csv-reader/pkg/constants"
 	"github.com/mymhimself/simple-csv-reader/pkg/mongodb"
@@ -143,9 +144,11 @@ func newEcho(cmd *cobra.Command) (*echo.Echo, error) {
 	{
 		err := runETL(context.Background())
 		if err != nil {
-			panic(err)
+			return nil, err
 		}
 	}
+
+	fmt.Println("error salaam")
 	return e, nil
 }
 
@@ -163,11 +166,19 @@ func runETL(ctx context.Context) error {
 		return err
 	}
 
+	pub, err := publisher.New(publisher.PublisherOptionFromViper(viper.GetViper().Sub(constants.Publisher)))
+	if err != nil {
+		return err
+	}
+
 	processorService, err := processor.New(
 		processor.InitOptionDelimiter(","),
 		processor.InitOptionObject(m),
-		processor.InitOptionPublisher(nil),
+		processor.InitOptionPublisher(pub),
 	)
+	if err != nil {
+		return err
+	}
 
 	linesChannel := make(chan string, 100)
 

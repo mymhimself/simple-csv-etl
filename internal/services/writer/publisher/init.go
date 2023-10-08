@@ -24,7 +24,7 @@ type iPublisher struct {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-func NewPublisher(ops ...PublisherOption) (IPublisher, error) {
+func New(ops ...PublisherOption) (IPublisher, error) {
 	s := new(iPublisher)
 	for _, fn := range ops {
 		err := fn(s)
