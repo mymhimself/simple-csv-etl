@@ -1,24 +1,19 @@
 package writer
 
-import "github.com/mymhimself/simple-csv-reader/internal/services/writer/publisher"
-
-
-package utility
-
 import (
 	"context"
 	"encoding/json"
-	"errors"
-	"fmt"
 
+	"github.com/getsentry/sentry-go"
+	"github.com/mymhimself/simple-csv-reader/internal/services/writer/publisher"
+	"github.com/mymhimself/simple-csv-reader/pkg/source"
 )
 
-type consumerHandler func(*genericMessage) error
-
+type consumerHandler func(*publisher.GenericMessage) error
 
 // ─────────────────────────────────────────────────────────────────────────────
 func (s *iWriter) OnMessage(bs []byte) error {
-	var msg genericMessage
+	var msg publisher.GenericMessage
 	err := json.Unmarshal(bs, &msg)
 	if err != nil {
 		sentry.CaptureException(err)
@@ -37,10 +32,11 @@ func (s *iWriter) OnMessage(bs []byte) error {
 
 	return nil
 }
+
 // ─────────────────────────────────────────────────────────────────────────────
-func (s *iPerson) events(event string) (consumerHandler, error) {
-	var es = map[string]func(*genericMessage) error{
-		"evt_create_new_record":       s.createNewRecord,
+func (s *iWriter) events(event string) (consumerHandler, error) {
+	var es = map[string]func(*publisher.GenericMessage) error{
+		"evt_create_new_record": s.createNewRecord,
 	}
 	fn, ok := es[event]
 	if !ok {
@@ -48,17 +44,19 @@ func (s *iPerson) events(event string) (consumerHandler, error) {
 	}
 	return fn, nil
 }
+
 // ─────────────────────────────────────────────────────────────────────────────
 func (s *iWriter) loadDefaults() {
 	s.config.numberOfConsumingThread = 1
 	s.config.rmq.exchangeName = "ex_writer"
 	s.config.rmq.queueName = "generic_writer"
-	s.config.rmq.consumerName = "service_simple_csv_etl"
+	s.config.rmq.consumerName = "service_writer"
 }
+
 // ─────────────────────────────────────────────────────────────────────────────
 func (s *iWriter) setupConsumer() error {
 	var err error
-	
+
 	if s.consumer == nil {
 		s.consumer, err = source.New(
 			source.OptionWithHost(s.config.rmq.host),
@@ -79,26 +77,25 @@ func (s *iWriter) setupConsumer() error {
 
 	return nil
 }
+
 // ─────────────────────────────────────────────────────────────────────────────
-func (s *iWriter) createNewRecord(msg *genericMessage) error {
+func (s *iWriter) createNewRecord(msg *publisher.GenericMessage) error {
 	ctx := context.TODO()
 
 	var params publisher.CreateNewRecordParams
-	err := msg.unmarshalSubMessage(&params)
+	err := msg.UnmarshalSubMessage(&params)
 	if err != nil {
 		return err
 	}
 
-	err := s.Create(ctx, &CreateParams{
+	err = s.Create(ctx, &CreateParams{
 		Collection: params.Collection,
-		Object: params.Object,
+		Object:     params.Object,
 	})
 	if err != nil {
 		sentry.CaptureException(err)
 		return err
 	}
 
-
-	// delete all structure user have
 	return nil
 }

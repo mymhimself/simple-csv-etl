@@ -9,13 +9,17 @@ import (
 type iWriter struct {
 	model writer.IWriter
 
-	source           source.Source
+	consumer         source.Source
 	consumersHandler map[string]consumerHandler
 	config           struct {
-		numberOfConsumingThread int32
-		exchange                string
-		queueHost               string
-		consumerName            string
+		rmq struct {
+			host         string
+			exchangeName string
+			queueName    string
+			key          string
+			consumerName string
+		}
+		numberOfConsumingThread int
 	}
 }
 
