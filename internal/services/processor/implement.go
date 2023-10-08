@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/mymhimself/logger"
+	"github.com/mymhimself/simple-csv-reader/internal/services/writer/publisher"
 )
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -12,7 +13,13 @@ func (s *iProcessor) ProcessLines(ctx context.Context, lineChan chan string) err
 	for line := range lineChan {
 		rowMap := s.extractObjectFromLine(line)
 
-		err := s.writerPublisher.PublishCreate(ctx, rowMap)
+		args := publisher.CreateNewRecordParams{
+			Object:     rowMap,
+			Collection: s.Collection,
+			Database:   "",
+		}
+
+		err := s.writerPublisher.CreateNewRecord(ctx, &args)
 		if err != nil {
 			logger.Error(err)
 		}

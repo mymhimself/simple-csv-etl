@@ -5,13 +5,19 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "DBug",
+            "name": "etl-node",
+            "port": 4087,
             "type": "go",
-            "request": "launch",
-            "mode": "auto",
-            "program": "${workspaceFolder}/main.go",
-            "args": ["csv-etl"]
+            "request": "attach",
+            "mode": "remote",
+            "host": "127.0.0.1"
+        },
 
-        }
-    ]
+    ],
+    "compounds": [{
+        "name": "docker-compose",
+        "configurations": ["etl-node"],
+        // "preLaunchTask": "${defaultBuildTask}",
+        "stopAll": true
+    }]
 }

@@ -348,6 +348,8 @@ const (
 	// ─────────────────────────────────────────────────────────────────────
 
 	Publisher = "publisher"
+
+	MongoDBURI = "mongodb.uri"
 )
 
 // Analytic Required Keys to reset information saved.

@@ -65,7 +65,7 @@ func (s *iPublisher) init() error {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-type utilityGenericMessage struct {
+type publisherGenericMessage struct {
 	RUID    string                 `json:"rid,omitempty"`
 	Event   string                 `json:"event,omitempty"`
 	Payload interface{}            `json:"payload,omitempty"`
@@ -73,7 +73,7 @@ type utilityGenericMessage struct {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-func (m *utilityGenericMessage) unmarshalSubMessage(v interface{}) error {
+func (m *publisherGenericMessage) unmarshalSubMessage(v interface{}) error {
 	if m.Payload == nil {
 		return errors.New("nil payload")
 	}

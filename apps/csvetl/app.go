@@ -110,7 +110,7 @@ func newEcho(cmd *cobra.Command) (*echo.Echo, error) {
 	os.Setenv(constants.ServiceName, strings.ToLower(cmd.Use))
 	{
 		// instantiate a mongo client
-		mongoClient, err := mongodb.New()
+		mongoClient, err := mongodb.New(mongodb.InitOptionURI(viper.GetString(constants.MongoDBURI)))
 		if err != nil {
 			return nil, err
 		}
@@ -156,7 +156,10 @@ func newEcho(cmd *cobra.Command) (*echo.Echo, error) {
 
 func runETL(ctx context.Context) error {
 	// instantiate a reader service
-	readerService, err := sReader.New(sReader.InitOptionDelimiter(","), sReader.InitOptionFileName("business-financial-data-mar-2022-quarter-csv.csv"))
+	readerService, err := sReader.New(
+		sReader.InitOptionDelimiter(","),
+		sReader.InitOptionFileName("business-financial-data-mar-2022-quarter-csv.csv"),
+	)
 	if err != nil {
 		return err
 	}

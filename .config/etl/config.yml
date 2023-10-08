@@ -12,4 +12,4 @@ consumer:
   name: service_csv_etl
 
 mongodb:
-  uri: 
+  uri: mongodb://localhost:27017

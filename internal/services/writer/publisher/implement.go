@@ -12,11 +12,11 @@ const contentJson = "application/json"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PublishCreate implements IPublisher
-func (s *iPublisher) PublishCreate(ctx context.Context, object map[string]string) error {
-	msg := &utilityGenericMessage{
+func (s *iPublisher) CreateNewRecord(ctx context.Context, params *CreateNewRecordParams) error {
+	msg := &publisherGenericMessage{
 		RUID:    time.Now().Format(time.RFC3339),
 		Event:   "evt_create_new_record",
-		Payload: object,
+		Payload: params,
 	}
 
 	bs, err := json.Marshal(msg)

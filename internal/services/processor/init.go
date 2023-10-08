@@ -8,6 +8,7 @@ import (
 type iProcessor struct {
 	writerPublisher publisher.IPublisher
 	object          map[string]string
+	Collection      string
 
 	config struct {
 		delimiter string

@@ -1,0 +1,101 @@
+package source
+
+import (
+	"errors"
+	"testing"
+
+	"github.com/golang/mock/gomock"
+	"github.com/saage-tech/leaderboard/internal/pkg/message"
+	"github.com/saage-tech/leaderboard/test/mocks"
+	"github.com/streadway/amqp"
+	"github.com/stretchr/testify/require"
+)
+
+func TestNew(t *testing.T) {
+
+	t.Run("Failure", func(t *testing.T) {
+		t.Run("Option", func(t *testing.T) {
+			S, err := New(func(rs *rmqSource) error { return errors.New("any") })
+			require.Error(t, err)
+			require.Nil(t, S)
+		})
+		t.Run("Connection", func(t *testing.T) {
+			S, err := New()
+			require.Error(t, err)
+			require.Nil(t, S)
+		})
+
+	})
+}
+
+func TestForeachN(t *testing.T) {
+	cont := gomock.NewController(t)
+
+	t.Run("Success", func(t *testing.T) {
+		RMQ := mocks.NewMockIRabbitConsumer(cont)
+		RMQ.EXPECT().Consume(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Return(nil).
+			Do(func(queueName, consumerName string, autoAck bool, exclusive bool, noLocal bool, noWait bool, args amqp.Table, processor func(message *amqp.Delivery) error, handleError func(error)) {
+				go func() {
+					processor(&amqp.Delivery{
+						Body: []byte{},
+					})
+					handleError(errors.New("any"))
+				}()
+
+			})
+		S := rmqSource{
+			c: RMQ,
+			C: make(chan amqp.Delivery),
+		}
+
+		err := S.ForeachN(func(m *message.Message) error { return nil }, 1)
+		require.NoError(t, err)
+
+	})
+
+	t.Run("Failure", func(t *testing.T) {
+
+		t.Run("Nil RMQ Channel", func(t *testing.T) {
+			S := rmqSource{
+				C: make(chan amqp.Delivery),
+			}
+			err := S.ForeachN(func(m *message.Message) error { return nil }, 1)
+			require.Error(t, err)
+		})
+		t.Run("Consume", func(t *testing.T) {
+			RMQ := mocks.NewMockIRabbitConsumer(cont)
+			RMQ.EXPECT().Consume(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(errors.New("any"))
+			S := rmqSource{
+				c: RMQ,
+				C: make(chan amqp.Delivery),
+			}
+
+			err := S.ForeachN(func(m *message.Message) error { return nil }, 1)
+			require.Error(t, err)
+		})
+
+		t.Run("Message Encoding", func(t *testing.T) {
+			RMQ := mocks.NewMockIRabbitConsumer(cont)
+			RMQ.EXPECT().Consume(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+				Return(nil).
+				Do(func(queueName, consumerName string, autoAck bool, exclusive bool, noLocal bool, noWait bool, args amqp.Table, processor func(message *amqp.Delivery) error, handleError func(error)) {
+					go func() {
+						processor(&amqp.Delivery{
+							Body: []byte("Hello World"),
+						})
+						handleError(errors.New("any"))
+					}()
+
+				})
+			S := rmqSource{
+				c: RMQ,
+				C: make(chan amqp.Delivery),
+			}
+			err := S.ForeachN(func(m *message.Message) error { return nil }, 1)
+			require.NoError(t, err)
+		})
+
+	})
+}

@@ -20,6 +20,6 @@
 # Go workspace file
 go.work
 
-data
+mongo_data
 
 bin

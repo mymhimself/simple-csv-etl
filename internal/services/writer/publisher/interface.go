@@ -5,5 +5,12 @@ import (
 )
 
 type IPublisher interface {
-	PublishCreate(ctx context.Context, object map[string]string) error
+	CreateNewRecord(ctx context.Context, params *CreateNewRecordParams) error
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+type CreateNewRecordParams struct {
+	Object     map[string]string
+	Collection string
+	Database   string
 }
