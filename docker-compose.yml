@@ -15,11 +15,11 @@ services:
     ports:
       - '27017:27017'
     volumes:
-      - "./mongo_data :/data/db"
+      - "./mongo_data:/data/db"
   etl-node:
     image: simple-csv-etl
-    # command: ["/main","csv-etl"]
-    command: ["/go/bin/dlv", "--listen=:4000","--wd=/", "--headless=true", "--log=true", "--accept-multiclient", "--api-version=2", "exec","/main","csv-etl"]
+    command: ["/main","csv-etl"]
+    # command: ["/go/bin/dlv", "--listen=:4000","--wd=/", "--headless=true", "--log=true", "--accept-multiclient", "--api-version=2", "exec","/main","csv-etl"]
     container_name: simple-csv-etl-node
     depends_on:
       - rabbitmq-node
@@ -28,7 +28,7 @@ services:
       - "4087:4000"
     user: root
     volumes:
-      - "$PWD/.config/gateway:/config"
+      - "$PWD/.config/etl:/config"
     environment:
       AWS_ACCESS_KEY_ID: 'DUMMYIDEXAMPLE'
       AWS_SECRET_ACCESS_KEY: 'DUMMYEXAMPLEKEY'

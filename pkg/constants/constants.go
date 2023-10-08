@@ -42,10 +42,10 @@ const (
 	ConfigFileFolder = "config/"
 
 	// ConfigFilePathEtc is a path may contain configuration file.
-	ConfigFilePathEtc = "/etc/krm-venture/ohs/"
+	ConfigFilePathEtc = "/etc/mymhimself/etl/"
 
 	// ConfigFilePathHome is a path may contain configuration file.
-	ConfigFilePathHome = "$HOME/.ohs/"
+	ConfigFilePathHome = "$HOME/.mymhimself/"
 
 	// ─── REST ────────────────────────────────────────────────────────────────────
 

@@ -110,6 +110,7 @@ func newEcho(cmd *cobra.Command) (*echo.Echo, error) {
 	os.Setenv(constants.ServiceName, strings.ToLower(cmd.Use))
 	{
 		// instantiate a mongo client
+		logger.Debug(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", viper.GetString(constants.MongoDBURI))
 		mongoClient, err := mongodb.New(mongodb.InitOptionURI(viper.GetString(constants.MongoDBURI)))
 		if err != nil {
 			return nil, err
