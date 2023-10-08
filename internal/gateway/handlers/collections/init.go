@@ -1,17 +1,16 @@
-package writer
+package etl
 
 import (
+	"github.com/mymhimself/simple-csv-reader/internal/services/writer"
 	"github.com/mymhimself/simple-csv-reader/pkg/config"
-	"github.com/mymhimself/simple-csv-reader/pkg/mongodb"
 )
 
-type iWriter struct {
-	mongodb mongodb.IMongoDB
+type iCollections struct {
+	service writer.IWriter
 }
 
-func New(ops ...InitOption) (IWriter, error) {
-	s := new(iWriter)
-
+func New(ops ...InitOption) (ICollections, error) {
+	s := new(iCollections)
 	for _, fn := range ops {
 		err := fn(s)
 		if err != nil {

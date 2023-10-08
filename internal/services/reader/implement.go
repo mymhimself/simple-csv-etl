@@ -3,7 +3,6 @@ package reader
 import (
 	"bufio"
 	"context"
-	"errors"
 	"os"
 	"strings"
 
@@ -36,28 +35,29 @@ func New(ops ...InitOption) (ICSVReader, error) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-func (s *iCSVReader) readMetadata() error {
-	s.object = make(map[string]string)
+func (s *iCSVReader) ReadMetaData(ctx context.Context) (map[string]string, error) {
+	m := make(map[string]string)
 	file, _ := os.Open(s.fileName)
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
 	if !scanner.Scan() {
-		return errors.New("header not found, file is empty")
+		return nil, ErrInvalidHeader
 	}
 
 	fieldsList := strings.Split(scanner.Text(), s.delimiter)
 	for _, field := range fieldsList {
-		s.object[field] = ""
+		m[field] = ""
 	}
 
-	return nil
+	return m, nil
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // StartReading implements ICSVReader.
 // this function read each line and push it into the out put channel
 func (s *iCSVReader) ReadLines(ctx context.Context, lineChan chan string) error {
-	err := s.readMetadata()
+	var err error
+	s.object, err = s.ReadMetaData(ctx)
 	if err != nil {
 		return err
 	}

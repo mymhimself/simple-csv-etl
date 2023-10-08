@@ -1,20 +1,6 @@
 package mongodb
 
-import (
-	"context"
-
-	"go.mongodb.org/mongo-driver/mongo"
-)
-
-// iMongoDB represents a MongoDB database connection.
-type iMongoDB struct {
-	client *mongo.Client
-}
-
-// NewMongoDatabase creates a new instance of MongoDatabase.
-func New() (IMongoDB, error) {
-	return &iMongoDB{}, nil
-}
+import "context"
 
 // InsertOne inserts a single document into a MongoDB collection.
 func (db *iMongoDB) InsertOne(ctx context.Context, collection string, document interface{}) error {

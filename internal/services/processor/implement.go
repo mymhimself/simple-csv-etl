@@ -5,17 +5,7 @@ import (
 	"strings"
 
 	"github.com/mymhimself/logger"
-	"github.com/mymhimself/simple-csv-reader/internal/services/writer/publisher"
 )
-
-type iProcessor struct {
-	writerPublisher publisher.IPublisher
-	object          map[string]string
-
-	config struct {
-		delimiter string
-	}
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 func (s *iProcessor) ProcessLines(ctx context.Context, lineChan chan string) error {
