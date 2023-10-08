@@ -10,3 +10,6 @@ consumer:
   exchange-name: ex_writer
   queue-name: q_writer
   name: service_csv_etl
+
+mongodb:
+  uri: 
