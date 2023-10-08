@@ -4,14 +4,14 @@ type InitOption func(*iCSVReader) error
 
 func InitOptionDelimiter(v string) InitOption {
 	return func(s *iCSVReader) error {
-		s.config.delimiter = v
+		s.delimiter = v
 		return nil
 	}
 }
 
 func InitOptionFileName(v string) InitOption {
 	return func(s *iCSVReader) error {
-		s.config.fileName = v
+		s.fileName = v
 		return nil
 	}
 }

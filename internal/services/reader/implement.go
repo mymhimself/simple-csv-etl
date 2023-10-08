@@ -2,25 +2,18 @@ package reader
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"os"
 	"strings"
 
-	"github.com/mymhimself/logger"
-	"github.com/mymhimself/simple-csv-reader/internal/entities"
-	"github.com/mymhimself/simple-csv-reader/internal/models/businessdata"
 	"github.com/mymhimself/simple-csv-reader/pkg/config"
 )
 
 type iCSVReader struct {
 	object    map[string]string
-	publisher businessdata.IPublisher
-
-	config struct {
-		delimiter string
-		fileName  string
-		model     businessdata.IBusinessData
-	}
+	delimiter string
+	fileName  string
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -45,14 +38,14 @@ func New(ops ...InitOption) (ICSVReader, error) {
 // ─────────────────────────────────────────────────────────────────────────────
 func (s *iCSVReader) readMetadata() error {
 	s.object = make(map[string]string)
-	file, _ := os.Open(s.config.fileName)
+	file, _ := os.Open(s.fileName)
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
 	if !scanner.Scan() {
 		return errors.New("header not found, file is empty")
 	}
 
-	fieldsList := strings.Split(scanner.Text(), s.config.delimiter)
+	fieldsList := strings.Split(scanner.Text(), s.delimiter)
 	for _, field := range fieldsList {
 		s.object[field] = ""
 	}
@@ -63,13 +56,13 @@ func (s *iCSVReader) readMetadata() error {
 // ─────────────────────────────────────────────────────────────────────────────
 // StartReading implements ICSVReader.
 // this function read each line and push it into the out put channel
-func (s *iCSVReader) ReadLines(lineChan chan string) error {
+func (s *iCSVReader) ReadLines(ctx context.Context, lineChan chan string) error {
 	err := s.readMetadata()
 	if err != nil {
 		return err
 	}
 
-	file, _ := os.Open(s.config.fileName)
+	file, _ := os.Open(s.fileName)
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
 
@@ -81,20 +74,5 @@ func (s *iCSVReader) ReadLines(lineChan chan string) error {
 		lineChan <- scanner.Text()
 	}
 
-	return nil
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-func (s *iCSVReader) ProcessLines(lineChan chan string) error {
-	for line := range lineChan {
-		businessData, err := entities.NewFromCSVLine(line, s.config.delimiter)
-		if err != nil {
-			logger.Error(err)
-		}
-		err = s.publisher.StoreBusinessData(businessData)
-		if err != nil {
-			logger.Error(err)
-		}
-	}
 	return nil
 }

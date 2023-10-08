@@ -1,6 +1,7 @@
 package reader
 
+import "context"
+
 type ICSVReader interface {
-	ReadLines(lineChan chan string) error
-	ProcessLines(lineChan chan string) error
+	ReadLines(ctx context.Context, lineChan chan string) error
 }
