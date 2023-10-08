@@ -1,0 +1,417 @@
+version: '3.3'
+services:
+  dynamodb-localhost:
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
+    image: "amazon/dynamodb-local:latest"
+    container_name: dynamodb-localhost
+    ports:
+      - "8000:8000"
+    volumes:
+      - "./tmp/dynamodb:/home/dynamodblocal/data:rw"
+    working_dir: /home/dynamodblocal
+    user: root
+  redis-localhost:
+    image: "redis/redis-stack-server:latest"
+    container_name: "redis-localhost"
+    user: root
+    ports:
+      - "6379:6379"
+  rabbitmq-node:
+    image: rabbitmq:3-management-alpine
+    container_name: 'rabbitmq-node'
+    ports:
+        - 5672:5672
+        - 15672:15672
+## Services    
+  analytic-node:
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 20000
+        hard: 40000
+    image: recoverit
+    command: ["/main","analytic"]
+    # command: ["/go/bin/dlv", "--listen=:4000","--wd=/", "--headless=true", "--log=true", "--accept-multiclient", "--api-version=2", "exec","/main","analytic"]
+    container_name: analytic-node
+    depends_on:
+      - dynamodb-localhost
+      - redis-localhost
+      # - rabbitmq-node
+    ports:
+      - "8081:8081"
+      - "4081:4000"
+    user: root
+    volumes:
+      - "$PWD/.config/analytic:/config"
+    environment:
+      AWS_ACCESS_KEY_ID: 'DUMMYIDEXAMPLE'
+      AWS_SECRET_ACCESS_KEY: 'DUMMYEXAMPLEKEY'
+      AWS_DEFAULT_REGION: us-east-1
+    # environment:
+      # - INFLUXDB_TOKEN: "DGMo37WlHa05TFkzXc88Hp37WuSVeEIxQJtVCoJ5sub0JdE3pGlZpt7ZMjEVwt0E0zHuh116WRmJ6zeOLmxY9A=="
+  pigeon-node:
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 20000
+        hard: 40000
+    image: recoverit
+    command: ["/main","pigeon"]
+    # command: ["/go/bin/dlv", "--listen=:4000","--wd=/", "--headless=true", "--log=true", "--accept-multiclient", "--api-version=2", "exec","/main","pigeon"]
+    container_name: pigeon-node
+    depends_on:
+      - dynamodb-localhost
+    ports:
+      - "8096:8096"
+      - "4096:4000"
+    environment:
+      AWS_ACCESS_KEY_ID: 'DUMMYIDEXAMPLE'
+      AWS_SECRET_ACCESS_KEY: 'DUMMYEXAMPLEKEY'
+    volumes:
+      - "$PWD/.config/pigeon:/config"
+  auth-node:
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 20000
+        hard: 40000
+    image: recoverit
+    command: ["/main","auth"]
+    # command: ["/go/bin/dlv", "--listen=:4000","--wd=/", "--headless=true", "--log=true", "--accept-multiclient", "--api-version=2", "exec","/main","auth"]
+    container_name: auth-node
+    depends_on:
+      - dynamodb-localhost
+      - person-node
+      # - pigeon-node
+      - content-node
+    ports:
+      - "8082:8082"
+      - "4082:4000"
+    user: root
+    volumes:
+      - "$PWD/.config/auth:/config"
+      - "$PWD/firebase.json:/firebase.json"
+    environment:
+      AWS_ACCESS_KEY_ID: 'DUMMYIDEXAMPLE'
+      AWS_SECRET_ACCESS_KEY: 'DUMMYEXAMPLEKEY'
+  contact-node:
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 20000
+        hard: 40000
+    image: recoverit
+    command: ["/main","contact"]
+    # command: ["/go/bin/dlv", "--listen=:4000","--wd=/", "--headless=true", "--log=true", "--accept-multiclient", "--api-version=2", "exec","/main","contact"]
+    container_name: contact-node
+    depends_on:
+      - dynamodb-localhost
+      #- perosn-node
+    ports:
+      - "8083:8083"
+      - "4083:4000"
+    user: root
+    volumes:
+      - "$PWD/.config/contact:/config"
+    environment:
+      AWS_ACCESS_KEY_ID: 'DUMMYIDEXAMPLE'
+      AWS_SECRET_ACCESS_KEY: 'DUMMYEXAMPLEKEY'
+  scheduler-node:
+    container_name: scheduler-node
+    image: recoverit
+    command: ["/main","scheduler"]
+    # command: ["/go/bin/dlv", "--listen=:4000","--wd=/", "--headless=true", "--log=true", "--accept-multiclient", "--api-version=2", "exec","/main","scheduler"]
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 20000
+        hard: 40000
+    ports:
+      - "8098:8098"
+      - "4063:4000"
+    user: root
+    volumes:
+      - "$PWD/.config/scheduler:/config"
+  content-node:
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 20000
+        hard: 40000
+    image: recoverit
+    command: ["/main","content"]
+    # command: ["/go/bin/dlv", "--listen=:4000","--wd=/", "--headless=true", "--log=true", "--accept-multiclient", "--api-version=2", "exec","/main","content"]
+    container_name: content-node
+    depends_on:
+      - dynamodb-localhost
+      - redis-localhost
+    ports:
+      - "8084:8084"
+      - "4084:4000"
+    user: root
+    volumes:
+      - "$PWD/.config/content:/config"
+      # - "$PWD/firebase.json:/firebase.json"
+    environment:
+      AWS_ACCESS_KEY_ID: 'DUMMYIDEXAMPLE'
+      AWS_SECRET_ACCESS_KEY: 'DUMMYEXAMPLEKEY'
+  coupon-node:
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 20000
+        hard: 40000
+    image: recoverit
+    command: ["/main","coupon"]
+    # command: ["/go/bin/dlv", "--listen=:4000","--wd=/", "--headless=true", "--log=true", "--accept-multiclient", "--api-version=2", "exec","/main","coupon"]
+    container_name: coupon-node
+    depends_on:
+      - dynamodb-localhost
+      - redis-localhost
+    ports:
+      - "8085:8085"
+      - "4085:4000"
+    user: root
+    volumes:
+      - "$PWD/.config/coupon:/config"
+      # - "$PWD/firebase.json:/firebase.json"
+    environment:
+      AWS_ACCESS_KEY_ID: 'DUMMYIDEXAMPLE'
+      AWS_SECRET_ACCESS_KEY: 'DUMMYEXAMPLEKEY'
+  notification-node:
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 20000
+        hard: 40000
+    image: recoverit
+    command: ["/main","notification"]
+    # command: ["/go/bin/dlv", "--listen=:4000","--wd=/", "--headless=true", "--log=true", "--accept-multiclient", "--api-version=2", "exec","/main","notification"]
+    container_name: notification-node
+    depends_on:
+      - dynamodb-localhost
+      - redis-localhost
+      # - rabbitmq-node
+      - content-node      
+    ports:
+      - "8088:8088"
+      - "4088:4000"
+    user: root
+    volumes:
+      - "$PWD/.config/notification:/config"
+      - "$PWD/firebase.json:/firebase.json"
+    environment:
+      AWS_ACCESS_KEY_ID: 'DUMMYIDEXAMPLE'
+      AWS_SECRET_ACCESS_KEY: 'DUMMYEXAMPLEKEY'
+  payment-node:
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 20000
+        hard: 40000
+    image: recoverit
+    command: ["/main","payment"]
+    # command: ["/go/bin/dlv", "--listen=:4000","--wd=/", "--headless=true", "--log=true", "--accept-multiclient", "--api-version=2", "exec","/main","payment"]
+    container_name: payment-node
+    depends_on:
+      - dynamodb-localhost
+      - redis-localhost
+    ports:
+      - "8090:8090"
+      - "4090:4000"
+    user: root
+    volumes:
+      - "$PWD/.config/payment:/config"
+      # - "$PWD/firebase.json:/firebase.json"
+    environment:
+      AWS_ACCESS_KEY_ID: 'DUMMYIDEXAMPLE'
+      AWS_SECRET_ACCESS_KEY: 'DUMMYEXAMPLEKEY'
+  plans-node:
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 20000
+        hard: 40000
+    image: recoverit
+    command: ["/main","plans"]
+    # command: ["/go/bin/dlv", "--listen=:4000","--wd=/", "--headless=true", "--log=true", "--accept-multiclient", "--api-version=2", "exec","/main","plans"]
+    container_name: plans-node
+    depends_on:
+      - dynamodb-localhost
+      - redis-localhost
+    ports:
+      - "8092:8092"
+      - "4092:4000"
+    user: root
+    volumes:
+      - "$PWD/.config/plans:/config"
+      # - "$PWD/firebase.json:/firebase.json"
+    environment:
+      AWS_ACCESS_KEY_ID: 'DUMMYIDEXAMPLE'
+      AWS_SECRET_ACCESS_KEY: 'DUMMYEXAMPLEKEY'
+  tutorial-node:
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 20000
+        hard: 40000
+    image: recoverit
+    command: ["/main","tutorial"]
+    # command: ["/go/bin/dlv", "--listen=:4000","--wd=/", "--headless=true", "--log=true", "--accept-multiclient", "--api-version=2", "exec","/main","tutorial"]
+    container_name: tutorial-node
+    depends_on:
+      - dynamodb-localhost
+      - redis-localhost
+    ports:
+      - "8093:8093"
+      - "4093:4000"
+    user: root
+    volumes:
+      - "$PWD/.config/tutorial:/config"
+  organization-node:
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 20000
+        hard: 40000
+    image: recoverit
+    # command: ["/main","organization"]
+    command: ["/go/bin/dlv", "--listen=:4000","--wd=/", "--headless=true", "--log=true", "--accept-multiclient", "--api-version=2", "exec","/main","organization"]
+    container_name: organization-node
+    volumes:
+      - "$PWD/.config/organization:/config"
+    depends_on:
+      - dynamodb-localhost
+      # - person-node
+    ports:
+      - "8089:8089"
+      - "4089:4000"
+    environment:
+      AWS_ACCESS_KEY_ID: 'DUMMYIDEXAMPLE'
+      AWS_SECRET_ACCESS_KEY: 'DUMMYEXAMPLEKEY'
+  utility-node:
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 20000
+        hard: 40000
+    image: recoverit
+    command: ["/main","utility"]
+    # command: ["/go/bin/dlv", "--listen=:4000","--wd=/", "--headless=true", "--log=true", "--accept-multiclient", "--api-version=2", "exec","/main","utility"]
+    container_name: utility-node
+    depends_on:
+      - dynamodb-localhost
+    ports:
+      - "8094:8094"
+      - "4094:4000"
+    user: root
+    volumes:
+      - "$PWD/.config/utility:/config"
+    environment:
+      AWS_ACCESS_KEY_ID: 'DUMMYIDEXAMPLE'
+      AWS_SECRET_ACCESS_KEY: 'DUMMYEXAMPLEKEY'
+  utility_type-node:
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 20000
+        hard: 40000
+    image: recoverit
+    command: ["/main","utilityType"]
+    # command: ["/go/bin/dlv", "--listen=:4000","--wd=/", "--headless=true", "--log=true", "--accept-multiclient", "--api-version=2", "exec","/main","utilityType"]
+    container_name: utility_type-node
+    depends_on:
+      - redis-localhost
+    ports:
+      - "8095:8095"
+      - "4095:4000"
+    user: root
+    volumes:
+      - "$PWD/.config/utility_type:/config"     
+  file_manager-node:
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 20000
+        hard: 40000
+    image: recoverit
+    command: ["/main","fileManager"]
+    # command: ["/go/bin/dlv", "--listen=:4000","--wd=/", "--headless=true", "--log=true", "--accept-multiclient", "--api-version=2", "exec","/main","fileManager"]
+    container_name: file-manager-node
+    ports:
+      - "8086:8086"
+      - "4086:4000"
+    volumes:
+      - "$PWD/.config/file_manager:/config"
+    environment:
+      AWS_ACCESS_KEY_ID: 'DUMMYIDEXAMPLE'
+      AWS_SECRET_ACCESS_KEY: 'DUMMYEXAMPLEKEY'
+  person-node:
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 20000
+        hard: 40000
+    image: recoverit
+    command: ["/main", "person"]
+    # command: ["/go/bin/dlv", "--listen=:4000","--wd=/", "--headless=true", "--log=true", "--accept-multiclient", "--api-version=2", "exec","/main", "person"]
+    container_name: person-node
+    depends_on:
+      - payment-node
+      # - organization-node
+      - notification-node
+      - pigeon-node
+      - analytic-node
+      - content-node
+      # - auth-node
+      - plans-node
+      - dynamodb-localhost
+    ports:
+      - "8091:8091"
+      - "4091:4000"
+    user: root
+    volumes:
+      - "$PWD/.config/person:/config"
+    environment:
+      AWS_ACCESS_KEY_ID: 'DUMMYIDEXAMPLE'
+      AWS_SECRET_ACCESS_KEY: 'DUMMYEXAMPLEKEY'
+  dev-node:
+    image: recoverit
+    command: ["/main","dev"]
+    # command: ["/go/bin/dlv", "--listen=:4000","--wd=/", "--headless=true", "--log=true", "--accept-multiclient", "--api-version=2", "exec","/main","dev"]
+    container_name: dev-node
+    ports:
+      - "8097:8097"
+      - "4097:4000"
+    user: root
+    volumes:
+      - "$PWD/.config/dev:/config:rw"
+  gateway-node:
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 20000
+        hard: 40000
+    image: recoverit
+    command: ["/main","gateway"]
+    # command: ["/go/bin/dlv", "--listen=:4000","--wd=/", "--headless=true", "--log=true", "--accept-multiclient", "--api-version=2", "exec","/main","gateway"]
+    container_name: gateway-node
+    depends_on:
+      - dynamodb-localhost
+      - redis-localhost
+    ports:
+      - "8087:8087"
+      - "4087:4000"
+    user: root
+    volumes:
+      - "$PWD/.config/gateway:/config"
+    environment:
+      AWS_ACCESS_KEY_ID: 'DUMMYIDEXAMPLE'
+      AWS_SECRET_ACCESS_KEY: 'DUMMYEXAMPLEKEY'
+
+#docker network create recoverit
+
+# networks: 
+#   default: 
+#     external: 
+#       name: recoverit

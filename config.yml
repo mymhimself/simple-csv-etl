@@ -1,0 +1,12 @@
+port: 8080
+
+publisher:
+    host: "amqp://guest:guest@rabbitmq-node:5672/"
+    exchange-name: ex_writer
+    exchange-type: "direct"
+
+consumer:
+  host: "amqp://guest:guest@rabbitmq-node:5672/"
+  exchange-name: ex_writer
+  queue-name: q_writer
+  name: service_csv_etl

@@ -5,11 +5,11 @@ import (
 	"strings"
 
 	"github.com/mymhimself/logger"
-	"github.com/mymhimself/simple-csv-reader/internal/services/writer"
+	"github.com/mymhimself/simple-csv-reader/internal/services/writer/publisher"
 )
 
 type iProcessor struct {
-	writerPublisher writer.IPublisher
+	writerPublisher publisher.IPublisher
 	object          map[string]string
 
 	config struct {
@@ -22,7 +22,7 @@ func (s *iProcessor) ProcessLines(ctx context.Context, lineChan chan string) err
 	for line := range lineChan {
 		rowMap := s.extractObjectFromLine(line)
 
-		err := s.writerPublisher.Create(ctx, rowMap)
+		err := s.writerPublisher.PublishCreate(ctx, rowMap)
 		if err != nil {
 			logger.Error(err)
 		}
@@ -32,13 +32,13 @@ func (s *iProcessor) ProcessLines(ctx context.Context, lineChan chan string) err
 
 // ─────────────────────────────────────────────────────────────────────────────
 func (s *iProcessor) extractObjectFromLine(line string) map[string]string {
-	newObject := make(map[string]string)
+	record := make(map[string]string)
 	var i int8
 	array := strings.Split(line, s.config.delimiter)
 	for key := range s.object {
-		newObject[key] = array[i]
+		record[key] = array[i]
 		i++
 	}
 
-	return newObject
+	return record
 }

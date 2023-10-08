@@ -5,6 +5,17 @@ import (
 )
 
 type IWriter interface {
-	Create(context.Context, map[string]string) error
-	List(context.Context) []map[string]string
+	Create(ctx context.Context, params *CreateParams) error
+	List(ctx context.Context, params *ListParams) ([]map[string]string, error)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+type CreateParams struct {
+	Collection string
+	Object     map[string]string
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+type ListParams struct {
+	Collection string
 }
