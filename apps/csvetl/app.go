@@ -26,7 +26,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func NewApp(cmd *cobra.Command) (apps.Runnable, error) {
+func NewApp(cmd *cobra.Command, args []string) (apps.Runnable, error) {
 
 	{
 		configPath, err := cmd.Flags().GetString(constants.ConfigPathFlag)
@@ -42,7 +42,7 @@ func NewApp(cmd *cobra.Command) (apps.Runnable, error) {
 		}
 	}
 
-	echoApp, err := newEcho(cmd)
+	echoApp, err := newEcho(cmd, args)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,8 @@ func NewApp(cmd *cobra.Command) (apps.Runnable, error) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-func newEcho(cmd *cobra.Command) (*echo.Echo, error) {
+func newEcho(cmd *cobra.Command, args []string) (*echo.Echo, error) {
+	logger.Debug(">>>>>>>>>>>>", args)
 	e := echo.New()
 	// Middleware
 	//todo user our logger with caller Report
@@ -110,7 +111,6 @@ func newEcho(cmd *cobra.Command) (*echo.Echo, error) {
 	os.Setenv(constants.ServiceName, strings.ToLower(cmd.Use))
 	{
 		// instantiate a mongo client
-		logger.Debug(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", viper.GetString(constants.MongoDBURI))
 		mongoClient, err := mongodb.New(mongodb.InitOptionURI(viper.GetString(constants.MongoDBURI)))
 		if err != nil {
 			return nil, err
@@ -118,6 +118,7 @@ func newEcho(cmd *cobra.Command) (*echo.Echo, error) {
 		// instantiate a writerModel
 		writerModel, err := mWriter.New(
 			mWriter.InitOptionMongoClient(mongoClient),
+			mWriter.InitOptionDatabaseName(viper.GetString(constants.MongoDBName)),
 		)
 		if err != nil {
 			return nil, err
@@ -125,7 +126,8 @@ func newEcho(cmd *cobra.Command) (*echo.Echo, error) {
 
 		// instantiate a writer service
 		writerService, err := sWriter.New(
-			sWriter.InitOptionModel(writerModel),
+			sWriter.InitModel(writerModel),
+			sWriter.InitConfigsFromViper(viper.GetViper()),
 		)
 		if err != nil {
 			return nil, err
@@ -143,23 +145,26 @@ func newEcho(cmd *cobra.Command) (*echo.Echo, error) {
 
 	// run etl to read form file and write it to the mongodb
 	{
-		err := runETL(context.Background())
+		err := runETL(context.Background(), &runETLParams{
+			FileName:   args[0],
+			Delimiter:  args[1],
+			Collection: args[2],
+		})
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	fmt.Println("error salaam")
 	return e, nil
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-func runETL(ctx context.Context) error {
+func runETL(ctx context.Context, params *runETLParams) error {
 	// instantiate a reader service
 	readerService, err := sReader.New(
-		sReader.InitOptionDelimiter(","),
-		sReader.InitOptionFileName("business-financial-data-mar-2022-quarter-csv.csv"),
+		sReader.InitOptionDelimiter(params.Delimiter),
+		sReader.InitOptionFileName(params.FileName),
 	)
 	if err != nil {
 		return err
@@ -176,9 +181,10 @@ func runETL(ctx context.Context) error {
 	}
 
 	processorService, err := processor.New(
-		processor.InitOptionDelimiter(","),
+		processor.InitOptionDelimiter(params.Delimiter),
 		processor.InitOptionObject(m),
 		processor.InitOptionPublisher(pub),
+		processor.InitOptionCollectionName(params.Collection),
 	)
 	if err != nil {
 		return err
@@ -190,4 +196,12 @@ func runETL(ctx context.Context) error {
 	go readerService.ReadLines(ctx, linesChannel)
 	go processorService.ProcessLines(ctx, linesChannel)
 	return nil
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+type runETLParams struct {
+	FileName   string
+	Delimiter  string
+	Collection string
+	Database   string
 }

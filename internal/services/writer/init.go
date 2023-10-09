@@ -26,6 +26,7 @@ type iWriter struct {
 // ─────────────────────────────────────────────────────────────────────────────
 func New(ops ...InitOption) (IWriter, error) {
 	s := new(iWriter)
+	s.loadDefaults()
 
 	for _, fn := range ops {
 		err := fn(s)
@@ -35,15 +36,17 @@ func New(ops ...InitOption) (IWriter, error) {
 	}
 
 	// init consuming function
-	s.consumersHandler = map[string]consumerHandler{}
+	s.consumersHandler = map[string]consumerHandler{
+		"evt_create_new_record": s.createNewRecord,
+	}
 
-	err := config.ValidateStruct(s)
+	// init queue consumer
+	err := s.setupConsumer()
 	if err != nil {
 		return nil, err
 	}
 
-	// init queue consumer
-	err = s.setupConsumer()
+	err = config.ValidateStruct(s)
 	if err != nil {
 		return nil, err
 	}

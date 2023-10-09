@@ -3,23 +3,26 @@ services:
   rabbitmq-node:
     image: rabbitmq:3-management-alpine
     container_name: 'rabbitmq-node'
+    volumes:
+      - ${HOME}/dev-rabbitmq/data/:/var/lib/rabbitmq
+      - ${HOME}/dev-rabbitmq/log/:/var/log/rabbitmq
     ports:
         - 5672:5672
         - 15672:15672
-  mongodb-node:
-    image: mongo:6-jammy
-    container_name: 'mongodb-node'
-    # environment:
-    #   - MONGO_INITDB_ROOT_USERNAME=root
-    #   - MONGO_INITDB_ROOT_PASSWORD=mongo_pass
-    ports:
-      - '27017:27017'
-    volumes:
-      - "./mongo_data:/data/db"
+  # mongodb-node:
+  #   image: mongo:6-jammy
+  #   container_name: 'mongodb-node'
+  #   # environment:
+  #   #   - MONGO_INITDB_ROOT_USERNAME=root
+  #   #   - MONGO_INITDB_ROOT_PASSWORD=mongo_pass
+  #   ports:
+  #     - '27017:27017'
+  #   volumes:
+  #     - "./mongo_data:/data/db"
   etl-node:
     image: simple-csv-etl
-    command: ["/main","csv-etl"]
-    # command: ["/go/bin/dlv", "--listen=:4000","--wd=/", "--headless=true", "--log=true", "--accept-multiclient", "--api-version=2", "exec","/main","csv-etl"]
+    # command: ["/main","csv-etl", "input/business-financial-data-mar-2022-quarter-csv.csv", ",", "businessInfo"]
+    command: ["/go/bin/dlv", "--listen=:4000","--wd=/", "--headless=true", "--log=true", "--accept-multiclient", "--api-version=2", "exec","/main","csv-etl", "input/business-financial-data-mar-2022-quarter-csv.csv", ",", "businessInfo"]
     container_name: simple-csv-etl-node
     depends_on:
       - rabbitmq-node
@@ -29,6 +32,7 @@ services:
     user: root
     volumes:
       - "$PWD/.config/etl:/config"
+      - "$PWD/input:/input"
     environment:
       AWS_ACCESS_KEY_ID: 'DUMMYIDEXAMPLE'
       AWS_SECRET_ACCESS_KEY: 'DUMMYEXAMPLEKEY'

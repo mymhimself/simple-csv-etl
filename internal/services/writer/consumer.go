@@ -35,10 +35,7 @@ func (s *iWriter) OnMessage(bs []byte) error {
 
 // ─────────────────────────────────────────────────────────────────────────────
 func (s *iWriter) events(event string) (consumerHandler, error) {
-	var es = map[string]func(*publisher.GenericMessage) error{
-		"evt_create_new_record": s.createNewRecord,
-	}
-	fn, ok := es[event]
+	fn, ok := s.consumersHandler[event]
 	if !ok {
 		return nil, ErrEventNotSupported
 	}

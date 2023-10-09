@@ -15,7 +15,7 @@ func (s *iProcessor) ProcessLines(ctx context.Context, lineChan chan string) err
 
 		args := publisher.CreateNewRecordParams{
 			Object:     rowMap,
-			Collection: s.Collection,
+			Collection: s.collection,
 			Database:   "",
 		}
 

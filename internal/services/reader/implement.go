@@ -37,7 +37,10 @@ func New(ops ...InitOption) (ICSVReader, error) {
 // ─────────────────────────────────────────────────────────────────────────────
 func (s *iCSVReader) ReadMetaData(ctx context.Context) (map[string]string, error) {
 	m := make(map[string]string)
-	file, _ := os.Open(s.fileName)
+	file, err := os.Open(s.fileName)
+	if err != nil {
+		return nil, err
+	}
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
 	if !scanner.Scan() {
@@ -62,7 +65,10 @@ func (s *iCSVReader) ReadLines(ctx context.Context, lineChan chan string) error 
 		return err
 	}
 
-	file, _ := os.Open(s.fileName)
+	file, err := os.Open(s.fileName)
+	if err != nil {
+		return err
+	}
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
 

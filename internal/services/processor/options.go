@@ -24,3 +24,10 @@ func InitOptionObject(v map[string]string) InitOption {
 		return nil
 	}
 }
+
+func InitOptionCollectionName(v string) InitOption {
+	return func(s *iProcessor) error {
+		s.collection = v
+		return nil
+	}
+}

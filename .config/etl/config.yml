@@ -10,6 +10,10 @@ consumer:
   exchange-name: ex_writer
   queue-name: q_writer
   name: service_csv_etl
+  threads: 1
 
 mongodb:
-  uri: mongodb://localhost:27017
+  uri: mongodb+srv://we-connect-user:DKDqGDxLVsEcaK7l@cluster0.xhajple.mongodb.net
+  database-name: db_etl
+
+  # uri: mongodb://localhost:27017

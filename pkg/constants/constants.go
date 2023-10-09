@@ -288,6 +288,7 @@ const (
 	Consumer             = "consumer"
 	Name                 = "name"
 	Key                  = "key"
+	Threads              = "threads"
 	ExchangeName         = "exchange-name"
 	ExchangeType         = "exchange-type"
 	ConsumerHost         = Consumer + "." + Host
@@ -295,6 +296,7 @@ const (
 	ConsumerKey          = Consumer + "." + Key
 	ConsumerExchangeName = Consumer + "." + ExchangeName
 	ConsumerName         = Consumer + "." + Name
+	ConsumerThreads      = Consumer + "." + Threads
 	Firebase             = "firebase"
 	Path                 = "path"
 	FirebasePath         = Firebase + "." + Path
@@ -349,7 +351,8 @@ const (
 
 	Publisher = "publisher"
 
-	MongoDBURI = "mongodb.uri"
+	MongoDBURI  = "mongodb.uri"
+	MongoDBName = "mongodb.database-name"
 )
 
 // Analytic Required Keys to reset information saved.
