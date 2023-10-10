@@ -2,7 +2,6 @@ package mongodb
 
 import (
 	"context"
-	"log"
 
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -41,26 +40,27 @@ func (s *iMongoDB) DeleteOne(ctx context.Context, database string, collection st
 
 // ─────────────────────────────────────────────────────────────────────────────
 // FindMany implements IMongoDB.
-func (s *iMongoDB) FindMany(ctx context.Context, database string, collection string, filter any) (any, error) {
+func (s *iMongoDB) FindMany(ctx context.Context, database string, collection string, filter any) ([]map[string]string, error) {
 	coll := s.client.Database(database).Collection(collection)
-	var results []bson.M
+	var results []map[string]string
 
 	cursor, err := coll.Find(context.Background(), filter)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	defer cursor.Close(context.Background())
 	for cursor.Next(context.Background()) {
-		var result bson.M
-		if err := cursor.Decode(&result); err != nil {
-			log.Fatal(err)
+		var doc map[string]string
+
+		if err := cursor.Decode(&doc); err != nil {
+			return nil, err
 		}
-		results = append(results, result)
+		results = append(results, doc)
 	}
 
 	if err := cursor.Err(); err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	return results, nil

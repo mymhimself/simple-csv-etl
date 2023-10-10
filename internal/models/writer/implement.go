@@ -2,6 +2,8 @@ package writer
 
 import (
 	"context"
+
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -13,15 +15,5 @@ func (s *iWriter) Create(ctx context.Context, params *CreateParams) error {
 // ─────────────────────────────────────────────────────────────────────────────
 // List implements IWriter.
 func (s *iWriter) List(ctx context.Context, params *ListParams) ([]map[string]string, error) {
-	result, err := s.mongodb.FindMany(ctx, s.database, params.Collection, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	m, ok := result.([]map[string]string)
-	if !ok {
-		return nil, ErrInvalidInterfaceAssertion
-	}
-
-	return m, nil
+	return s.mongodb.FindMany(ctx, s.database, params.Collection, bson.D{})
 }

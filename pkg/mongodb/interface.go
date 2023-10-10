@@ -10,5 +10,5 @@ type IMongoDB interface {
 	FindOne(ctx context.Context, database string, collection string, filter any) (any, error)
 	UpdateOne(ctx context.Context, database string, collection string, filter any, update any) error
 	DeleteOne(ctx context.Context, database string, collection string, filter any) error
-	FindMany(ctx context.Context, database string, collection string, filter any) (any, error)
+	FindMany(ctx context.Context, database string, collection string, filter any) ([]map[string]string, error)
 }

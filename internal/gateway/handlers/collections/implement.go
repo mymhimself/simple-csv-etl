@@ -13,7 +13,7 @@ import (
 func (s *iCollections) List(c echo.Context) error {
 
 	args := writer.ListParams{
-		Collection: "",
+		Collection: c.Param("collection"),
 	}
 
 	resp, err := s.service.List(c.Request().Context(), &args)
@@ -38,7 +38,7 @@ func (s *iCollections) Register(e *echo.Echo) error {
 		{
 			Name:    "health-check",
 			Method:  http.MethodGet,
-			Path:    "etl/collections/health-check",
+			Path:    "etl/health-check",
 			Handler: s.HealthCheck,
 		},
 		{

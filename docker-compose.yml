@@ -9,6 +9,11 @@ services:
     ports:
         - 5672:5672
         - 15672:15672
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:15672"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
   # mongodb-node:
   #   image: mongo:6-jammy
   #   container_name: 'mongodb-node'
@@ -21,11 +26,12 @@ services:
   #     - "./mongo_data:/data/db"
   etl-node:
     image: simple-csv-etl
-    # command: ["/main","csv-etl", "input/business-financial-data-mar-2022-quarter-csv.csv", ",", "businessInfo"]
-    command: ["/go/bin/dlv", "--listen=:4000","--wd=/", "--headless=true", "--log=true", "--accept-multiclient", "--api-version=2", "exec","/main","csv-etl", "input/business-financial-data-mar-2022-quarter-csv.csv", ",", "businessInfo"]
+    command: ["/main","csv-etl", "input/business-financial-data-mar-2022-quarter-csv.csv", ",", "businessInfo"]
+    # command: ["/go/bin/dlv", "--listen=:4000","--wd=/", "--headless=true", "--log=true", "--accept-multiclient", "--api-version=2", "exec","/main","csv-etl", "input/business-financial-data-mar-2022-quarter-csv.csv", ",", "businessInfo"]
     container_name: simple-csv-etl-node
     depends_on:
       - rabbitmq-node
+    restart: on-failure
     ports:
       - "8080:8080"
       - "4087:4000"
