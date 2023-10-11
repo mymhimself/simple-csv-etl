@@ -1,0 +1,14 @@
+FROM golang:latest as builder
+
+RUN CGO_ENABLED=0 go install -ldflags "-s -w -extldflags '-static'" github.com/go-delve/delve/cmd/dlv@latest
+
+FROM ubuntu:22.04 as host
+
+RUN apt-get update \
+  && apt-get install -y ca-certificates curl wget libxrender1 libfontconfig libxtst6 xz-utils unzip less fontconfig libfontenc1 libjpeg-turbo8 xfonts-75dpi xfonts-base xfonts-encodings xfonts-utils
+
+
+COPY ./bin/main /
+COPY --from=builder /go/bin/dlv /go/bin/dlv
+
+WORKDIR /
